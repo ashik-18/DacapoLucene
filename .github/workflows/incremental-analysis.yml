@@ -1,0 +1,94 @@
+name: incremental-analysis
+# The name shown in the repo's "Actions" tab. Only a label.
+
+on:                      # WHEN the workflow runs
+  push:                  #   on a push...
+    branches: [master]   #   ...to the master branch only (pushes to fair-manifests don't count)
+
+permissions:             # WHAT the job's automatic token (GITHUB_TOKEN) may do
+  contents: write        #   read AND write repo contents, so step 9 can push
+
+concurrency:             # HOW overlapping runs are handled
+  group: fair-manifests  #   runs with the same group name never run at the same time
+  cancel-in-progress: false  # a new run waits for the old one instead of cancelling it
+
+jobs:                    # a workflow is made of jobs; this one has a single job
+  analyze:               #   the job's id (any name you like)
+    runs-on: ubuntu-latest   # GitHub starts a fresh Linux machine for it; nothing survives between runs
+
+    steps:               # the job runs these one after another, top to bottom
+      # each step either "uses:" a ready-made action or "run:"s shell commands
+
+      - name: Check out benchmark         # label shown in the run's log
+        uses: actions/checkout@v4         # ready-made action that clones a repo (by default: this repo)
+        with:                             # inputs for that action
+          path: benchmark                 #   put it in $GITHUB_WORKSPACE/benchmark
+          fetch-depth: 0                  #   full history (default is 1 commit); the diff needs the old commit
+
+      - name: Check out manifest store
+        uses: actions/checkout@v4         # same action again...
+        with:
+          ref: fair-manifests             #   ...but this branch instead of the pushed commit
+          path: store                     #   into $GITHUB_WORKSPACE/store
+
+      - name: Check out analyzer
+        uses: actions/checkout@v4         # same action, a DIFFERENT repo
+        with:
+          repository: ashik-18/sosa-analyzer   # owner/name of the repo to clone
+          ref: incremental-analysis            # branch to take
+          path: analyzer                       # into $GITHUB_WORKSPACE/analyzer
+          token: ${{ secrets.ANALYZER_TOKEN }}
+          # (private repo? add  token: ${{ secrets.ANALYZER_TOKEN }})
+
+      - uses: actions/setup-java@v4       # ready-made action that installs a JDK (no name: given, so the log shows the action)
+        with:
+          distribution: temurin           #   which JDK build
+          java-version: 17                #   which version; used by mvn and gradlew below
+
+      - name: Compile benchmark
+        working-directory: benchmark      # run the command inside $GITHUB_WORKSPACE/benchmark
+        run: mvn -q -B clean compile      # shell command: delete old classes, compile to target/classes
+        #   -q quiet, -B batch mode (no interactive prompts/colours)
+
+      - name: Restore previous manifest
+        run: |                            # "|" = several shell lines follow
+          mkdir -p out                    #   make $GITHUB_WORKSPACE/out (default dir is $GITHUB_WORKSPACE)
+          if [ -f store/latest.json ]; then cp store/latest.json out/method_manifest.json; fi
+                                          #   copy the last manifest in, if there is one (not on the first run)
+
+      - name: Run incremental analysis
+        working-directory: analyzer       # run inside the sosa-analyzer checkout
+        run: |
+          ./gradlew incrementalAnalysis --args="\
+            --repo=$GITHUB_WORKSPACE/benchmark \
+            --src=src/main/java \
+            --classes=$GITHUB_WORKSPACE/benchmark/target/classes \
+            --manifest=$GITHUB_WORKSPACE/out/method_manifest.json \
+            --summary=$GITHUB_WORKSPACE/out/summary_report.json \
+            --analysis=TAINT_ANALYSIS"
+          # your Gradle task, given:
+          #   --repo      the git repo to diff (benchmark)
+          #   --src       source folder inside it (used to map changed files to classes)
+          #   --classes   compiled classes from the "Compile benchmark" step
+          #   --manifest  old manifest in, new manifest out
+          #   --out       summary report (added/removed/modified methods + findings)
+          # $GITHUB_WORKSPACE = the job's root folder; paths are absolute because gradle runs from analyzer/
+          # "\" at line ends = the shell joins the lines into one command
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4  # ready-made action: attach files to this run
+        with:
+          name: incremental-report-${{ github.sha }}   # ${{ ... }} = filled in by GitHub; github.sha = pushed commit
+          path: out/                                    # what to attach; download it from the run's page
+
+      - name: Save manifest to fair-manifests
+        working-directory: store          # run inside the fair-manifests checkout
+        run: |
+          mkdir -p reports
+          cp ../out/method_manifest.json method_manifest.json            # new manifest becomes the next run's input
+          run: cp ../out/summary_report.json reports/summary_${GITHUB_SHA: -5}.json   # keep this commit's report
+          git config user.name "github-actions[bot]"            # commit author shown on GitHub
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A                                            # stage everything changed in store/
+          git commit -m "manifest for ${GITHUB_SHA}"
+          git push                                              # push to fair-manifests; credentials came from checkout
