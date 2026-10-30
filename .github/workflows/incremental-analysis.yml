@@ -66,7 +66,7 @@ jobs:                    # a workflow is made of jobs; this one has a single job
             --classes=$GITHUB_WORKSPACE/benchmark/target/classes \
             --manifest=$GITHUB_WORKSPACE/out/method_manifest.json \
             --summary=$GITHUB_WORKSPACE/out/summary_report.json \
-            --analysis=CONSTANT_PROPAGATION"
+            --analysis="TAINT_ANALYSIS"
           # your Gradle task, given:
           #   --repo      the git repo to diff (benchmark)
           #   --src       source folder inside it (used to map changed files to classes)
