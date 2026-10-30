@@ -31,10 +31,12 @@ public class ISOLatin1AccentFilter extends TokenFilter {
 
   private char[] output = new char[256];
   private int outputPos;
+  public static int lastTokenLength;
 
   public final Token next(final Token reusableToken) throws java.io.IOException {
     assert reusableToken != null;
     Token nextToken = input.next(reusableToken);
+    lastTokenLength = 7;
     if (nextToken != null) {
       final char[] buffer = nextToken.termBuffer();
       final int length = nextToken.termLength();
