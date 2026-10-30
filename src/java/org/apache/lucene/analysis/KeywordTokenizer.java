@@ -40,6 +40,7 @@ public class KeywordTokenizer extends Tokenizer {
 
   public Token next(final Token reusableToken) throws IOException {
     assert reusableToken != null;
+    int a = 0;
     if (!done) {
       done = true;
       int upto = 0;

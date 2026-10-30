@@ -47,6 +47,7 @@ public final class PorterStemFilter extends TokenFilter {
 
   public final Token next(final Token reusableToken) throws IOException {
     assert reusableToken != null;
+    int x = 0;
     Token nextToken = input.next(reusableToken);
     if (nextToken == null)
       return null;
