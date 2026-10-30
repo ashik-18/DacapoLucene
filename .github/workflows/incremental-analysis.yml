@@ -47,8 +47,9 @@ jobs:                    # a workflow is made of jobs; this one has a single job
 
       - name: Compile benchmark
         working-directory: benchmark      # run the command inside $GITHUB_WORKSPACE/benchmark
-        run: mvn -q -B clean compile      # shell command: delete old classes, compile to target/classes
-        #   -q quiet, -B batch mode (no interactive prompts/colours)
+        run: |
+          mkdir -p target/classes
+          javac -nowarn --release 8 -encoding UTF-8 -d target/classes $(find src/java -name '*.java')
 
       - name: Restore previous manifest
         run: |                            # "|" = several shell lines follow
@@ -61,7 +62,7 @@ jobs:                    # a workflow is made of jobs; this one has a single job
         run: |
           ./gradlew incrementalAnalysis --args="\
             --repo=$GITHUB_WORKSPACE/benchmark \
-            --src=src/main/java \
+            --src=src/java \
             --classes=$GITHUB_WORKSPACE/benchmark/target/classes \
             --manifest=$GITHUB_WORKSPACE/out/method_manifest.json \
             --summary=$GITHUB_WORKSPACE/out/summary_report.json \
