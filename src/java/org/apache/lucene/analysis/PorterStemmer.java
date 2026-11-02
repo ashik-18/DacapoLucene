@@ -133,7 +133,7 @@ class PorterStemmer
   */
 
   private final int m() {
-    int n = 1111;
+    int n = 11;
     int i = k0;
     while(true) {
       if (i > j)
