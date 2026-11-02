@@ -60,24 +60,27 @@ jobs:                    # a workflow is made of jobs; this one has a single job
       # checking if analyser version already built and cached, if not build it and cache it for future runs
       - name: Analyzer version
         id: analyzer
-        run: echo "sha=$(git -C analyzer rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          sha=$(git -C analyzer rev-parse HEAD)
+          echo "sha=${sha: -10}" >> "$GITHUB_OUTPUT"
 
       - name: Restore analyzer build
         id: analyzer-cache
         uses: actions/cache@v4
         with:
-          path: analyzer/build/incremental-dependencies
+          path: analyzer/build/fair-dependencies
           key: analyzer-${{ steps.analyzer.outputs.sha }}
 
       # build analyzer only if it was not restored from cache
+      # cache is found in the git actions cache, stored for 7 days without use.
       - name: Build analyzer
         if: steps.analyzer-cache.outputs.cache-hit != 'true'
         working-directory: analyzer
-        run: ./gradlew incrementalAnalysisDependencies
+        run: ./gradlew fairDependenciesForIncrementalAnalysis
 
       - name: Run incremental analysis
         run: |
-          java -Xmx12g -cp "analyzer/build/incremental-dependencies/lib/*" \
+          java -Xmx12g -cp "analyzer/build/fair-dependencies/lib/*" \
             incrementalAnalysis.IncrementalAnalysisMainKt \
             --repo=$GITHUB_WORKSPACE/benchmark \
             --src=src/java \
