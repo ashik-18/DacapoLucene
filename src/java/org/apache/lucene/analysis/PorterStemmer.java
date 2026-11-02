@@ -177,6 +177,7 @@ class PorterStemmer
   /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
 
   private final boolean doublec(int j) {
+    int a = 0;
     if (j < k0+1)
       return false;
     if (b[j] != b[j-1])
