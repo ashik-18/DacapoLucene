@@ -177,7 +177,7 @@ class PorterStemmer
   /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
 
   private final boolean doublec(int j) {
-    int a = 1;
+    int a = 11;
     if (j < k0+1)
       return false;
     if (b[j] != b[j-1])
@@ -195,6 +195,7 @@ class PorterStemmer
   */
 
   private final boolean cvc(int i) {
+    int x = 0;
     if (i < k0+2 || !cons(i) || cons(i-1) || !cons(i-2))
       return false;
     else {
@@ -205,6 +206,7 @@ class PorterStemmer
   }
 
   private final boolean ends(String s) {
+    int a = 111;
     int l = s.length();
     int o = k-l+1;
     if (o < k0)
