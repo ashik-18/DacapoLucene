@@ -57,16 +57,45 @@ jobs:                    # a workflow is made of jobs; this one has a single job
                     if [ -f store/method_manifest.json ]; then cp store/method_manifest.json out/method_manifest.json; fi
                                           #   copy the last manifest in, if there is one (not on the first run)
 
+      # checking if analyser version already built and cached, if not build it and cache it for future runs
+      - name: Analyzer version
+        id: analyzer
+        run: echo "sha=$(git -C analyzer rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore analyzer build
+        id: analyzer-cache
+        uses: actions/cache@v4
+        with:
+          path: analyzer/build/incremental-dependencies
+          key: analyzer-${{ steps.analyzer.outputs.sha }}
+
+      # build analyzer only if it was not restored from cache
+      - name: Build analyzer
+        if: steps.analyzer-cache.outputs.cache-hit != 'true'
+        working-directory: analyzer
+        run: ./gradlew incrementalAnalysisDependencies
+
       - name: Run incremental analysis
-        working-directory: analyzer       # run inside the sosa-analyzer checkout
         run: |
-          ./gradlew incrementalAnalysis --args="\
+          java -Xmx12g -cp "analyzer/build/incremental-dependencies/lib/*" \
+            incrementalAnalysis.IncrementalAnalysisMainKt \
             --repo=$GITHUB_WORKSPACE/benchmark \
             --src=src/java \
             --classes=$GITHUB_WORKSPACE/benchmark/target/classes \
             --manifest=$GITHUB_WORKSPACE/out/method_manifest.json \
             --summary=$GITHUB_WORKSPACE/out/summary_report.json \
-            --analysis=CONSTANT_PROPAGATION"
+            --analysis=CONSTANT_PROPAGATION
+
+#      - name: Run incremental analysis
+#        working-directory: analyzer       # run inside the sosa-analyzer checkout
+#        run: |
+#          ./gradlew incrementalAnalysis --args="\
+#            --repo=$GITHUB_WORKSPACE/benchmark \
+#            --src=src/java \
+#            --classes=$GITHUB_WORKSPACE/benchmark/target/classes \
+#            --manifest=$GITHUB_WORKSPACE/out/method_manifest.json \
+#            --summary=$GITHUB_WORKSPACE/out/summary_report.json \
+#            --analysis=CONSTANT_PROPAGATION"
           # your Gradle task, given:
           #   --repo      the git repo to diff (benchmark)
           #   --src       source folder inside it (used to map changed files to classes)
