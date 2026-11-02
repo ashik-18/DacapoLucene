@@ -167,7 +167,7 @@ class PorterStemmer
   /* vowelinstem() is true <=> k0,...j contains a vowel */
 
   private final boolean vowelinstem() {
-    int i;
+    int i = 1;
     for (i = k0; i <= j; i++)
       if (! cons(i))
         return true;
