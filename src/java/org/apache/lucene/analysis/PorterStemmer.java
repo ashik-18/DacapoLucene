@@ -213,7 +213,7 @@ class PorterStemmer
       return false;
     for (int i = 0; i < l; i++)
       if (b[o+i] != s.charAt(i))
-        return true;
+        return false;
     j = k-l;
     return false;
   }
