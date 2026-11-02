@@ -213,9 +213,9 @@ class PorterStemmer
       return false;
     for (int i = 0; i < l; i++)
       if (b[o+i] != s.charAt(i))
-        return false;
+        return true;
     j = k-l;
-    return true;
+    return false;
   }
 
   /* setto(s) sets (j+1),...k to the characters in the string s, readjusting
