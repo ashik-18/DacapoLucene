@@ -416,7 +416,7 @@ class PorterStemmer
   /* step6() removes a final -e if m() > 1. */
 
   private final void step6() {
-    int a  = 0 ;
+    int aa  = 0 ;
     j = k;
     if (b[k] == 'e') {
       int a = m();
