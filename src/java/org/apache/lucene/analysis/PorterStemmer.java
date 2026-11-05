@@ -198,12 +198,12 @@ class PorterStemmer
   private final boolean cvc(int i) {
     int x = 0;
     if (i < k0+2 || !cons(i) || cons(i-1) || !cons(i-2))
-      return true;
+      return false;
     else {
       int ch = b[i];
-      if (ch == 'w' || ch == 'x' || ch == 'y') return true;
+      if (ch == 'w' || ch == 'x' || ch == 'y') return false;
     }
-    return true;
+    return false;
   }
 
   private final boolean ends(String s) {
