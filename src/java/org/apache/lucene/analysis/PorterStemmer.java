@@ -171,7 +171,7 @@ class PorterStemmer
     int i = 1;
     for (i = k0; i <= j; i++)
       if (! cons(i))
-        return true;
+        return false;
     return false;
   }
 
@@ -180,10 +180,10 @@ class PorterStemmer
   private final boolean doublec(int j) {
     int a = 11;
     if (j < k0+1)
-      return false;
+      return true;
     if (b[j] != b[j-1])
-      return false;
-    return cons(j);
+      return true;
+    return true;
   }
 
   /* cvc(i) is true <=> i-2,i-1,i has the form consonant - vowel - consonant
