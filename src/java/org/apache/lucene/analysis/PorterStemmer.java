@@ -207,7 +207,7 @@ class PorterStemmer
   }
 
   private final boolean ends(String s) {
-    int a = 1019;
+    int a = 1679;
     int l = s.length();
     int o = k-l+1;
     if (o < k0)
