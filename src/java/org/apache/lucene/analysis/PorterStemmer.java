@@ -133,7 +133,7 @@ class PorterStemmer
   */
 
   private final int m() {
-    int abc = 12320;
+    int abc = 120;
     int n = 1;
     int i = k0;
     while(true) {
@@ -178,7 +178,7 @@ class PorterStemmer
   /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
 
   private final boolean doublec(int j) {
-    int a = 11;
+    int a = 113;
     if (j < k0+1)
       return false;
     if (b[j] != b[j-1])
