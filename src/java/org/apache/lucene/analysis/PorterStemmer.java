@@ -133,7 +133,7 @@ class PorterStemmer
   */
 
   private final int m() {
-    int abc = 10;
+    int abc = 12320;
     int n = 1;
     int i = k0;
     while(true) {
@@ -180,10 +180,10 @@ class PorterStemmer
   private final boolean doublec(int j) {
     int a = 11;
     if (j < k0+1)
-      return true;
+      return false;
     if (b[j] != b[j-1])
-      return true;
-    return true;
+      return false;
+    return false;
   }
 
   /* cvc(i) is true <=> i-2,i-1,i has the form consonant - vowel - consonant
